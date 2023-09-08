@@ -1,9 +1,15 @@
-const reqmate = require('../dist').default
-const MapCache = require('../dist/MapCache').default;
+const reqmate = require('../dist/src/').default
+const MapCache = require('../dist/src/MapCache').default;
 
-const Retry = require('../dist/retry/Retry');
-const LongPolling = require('../dist/retry/LongPolling').default;
-const ShortPolling = require('../dist/retry/ShortPolling').default;
+const Retry = require('../dist/src/retry/Retry');
+const LongPolling = require('../dist/src/retry/LongPolling').default;
+const ShortPolling = require('../dist/src/retry/ShortPolling').default;
+const Exponential = require('../dist/src/retry/Exponential').default;
+
+
+const url = "https://jsonplaceholder.typicode.com/todos/1";
+
+
 // reqmate
 //     .get('https://jsonplaceholder.typicode.com/todos/1')
 //     // .setParser(async res => {
@@ -144,28 +150,52 @@ const ShortPolling = require('../dist/retry/ShortPolling').default;
 // })()
 
 
-(async function test() {
-    const url = "https://jsonplaceholder.typicode.com/todos/1"
+// (async function test() {
+//     const url = "https://jsonplaceholder.typicode.com/todos/1"
 
-    const pollingLong = (new LongPolling())
-        .setMaxRetries(10)
-        .onResponse(r => console.log("CALLING"));
+//     const pollingLong = (new LongPolling())
+//         .setMaxRetries(10)
+//         .onResponse((r, done) => {
+//             done();
+//         });
 
-    const shortPolling = (new ShortPolling())
-        .onResponse((r, d) => {
-            console.log("CALL")
-            // d();
-        })
-        .setInterval(1)
-        .setMaxRetries(20)
+//     const shortPolling = (new ShortPolling())
+//         .onResponse((r, d) => {
+//             console.log("CALL")
+//             // d();
+//         })
+//         .setInterval(1)
+//         .setMaxRetries(20)
+//         .setTimeout(5)
+
+//     const result = await reqmate
+//         .get(url)
+//         .setRetry(polling)
+//         // .setRetry(shortPolling)
+//         .setCaching(5)
+//         .send()
+
+//     console.log({ result })
+// })()
+
+
+(async function exponentialTest() {
+    const exp = (new Exponential())
+        .setInterval(2)
+        .setMaxRetries(5)
         .setTimeout(5)
+        .onResponse(r => console.log("ON RESPONSE: ", r));
+
 
     const result = await reqmate
         .get(url)
-        // .setRetry(polling)
-        .setRetry(shortPolling)
-        // .setCaching(5)
-        .send()
+        .setCaching()
+        .setRetry(exp)
+        .send();
 
-    console.log({ result })
+    const cached = await reqmate
+        .get(url)
+        .setRetry(exp)
+        .send();
+    console.log({ result, cached })
 })()

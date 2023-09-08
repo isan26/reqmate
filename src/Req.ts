@@ -80,52 +80,55 @@ export default class Req {
 
     public async send<T>(): Promise<Res<T>> {
         if (mapCache.has(this._requestKey)) {
-            const result = mapCache.get(this._requestKey) as Res<T>;
-            result.cached = true;
-            result.cacheKey = this._requestKey;
-            return result;
+            return this.getResultFromCache<T>()!;
         }
 
-        const result = {} as Res<T>;
-
-        if (this._retry) {
-            const callback = async () => {
-                const res = await this.sendRequest();
-                const data = await this.parseResponse(res) as T;
-                return { res, data };
-            }
-            const { res, data } = await this._retry.setCallback(callback.bind(this)).execute() as { res: Response, data: T };
-
-            result.ok = res.ok;
-            result.status = res.status;
-            result.headers = this.getHeaders(res);
-            result.cached = false;
-            result.data = data;
-        }
-        else {
-            const res = await this.sendRequest();
-            const data = await this.parseResponse(res) as T;
-
-            result.ok = res.ok;
-            result.status = res.status;
-            result.headers = this.getHeaders(res);
-            result.cached = false;
-            result.data = data;
-        }
-
+        const result = this._retry ? await this.getResultFromRetrier<T>() : await this.getResultFromFetch<T>();
         this._willCache && mapCache.set(this._requestKey, result, this._cacheTTL);
 
         return result;
     }
 
-    private sendRequest(): Promise<Response> {
-        const config = this.config;
 
-        if (this._timeout > 0) {
-            return this.callWithTimeout(fetch(this._url, config));
+    private getResultFromCache<T>(): Res<T> {
+        const result = mapCache.get(this._requestKey) as Res<T>;
+        result.cached = true;
+        result.cacheKey = this._requestKey;
+        return result;
+    }
+
+    private async getResultFromRetrier<T>(): Promise<Res<T>> {
+        const callback = async () => {
+            const res = await this.sendRequest();
+            const data = await this.parseResponse(res) as T;
+            return {
+                ok: res.ok,
+                status: res.status,
+                headers: this.getHeaders(res),
+                cached: false,
+                data: data,
+            }
         }
+        return await this._retry!.setCallback(callback.bind(this)).execute() as Res<T>;
+    }
 
-        return fetch(this._url, config);
+    private async getResultFromFetch<T>(): Promise<Res<T>> {
+        const res = await this.sendRequest();
+        const data = await this.parseResponse(res) as T;
+
+        return {
+            ok: res.ok,
+            status: res.status,
+            headers: this.getHeaders(res),
+            cached: false,
+            data: data,
+        }
+    }
+
+    private sendRequest(): Promise<Response> {
+        return this._timeout > 0 ?
+            this.callWithTimeout(fetch(this._url, this.config)) :
+            fetch(this._url, this.config);
     }
 
     private get config(): RequestInit {
@@ -199,7 +202,6 @@ export default class Req {
 
 
     public setCaching(ttl: number = 0): Req {
-        console.log('caching');
         this._willCache = true;
         this._cacheTTL = ttl;
 

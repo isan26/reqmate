@@ -4,9 +4,8 @@ export default class ShortPolling extends Retry {
 
     private _interval: number = 0;
     private _result: unknown;
-    private _timer: NodeJS.Timeout | null = null;
+    private _timer: any | null = null;
     private _resolve: ((value: unknown) => void) | null = null;
-
 
     public async execute(): Promise<unknown> {
         return new Promise(async (resolve) => {
@@ -27,12 +26,6 @@ export default class ShortPolling extends Retry {
                 this.resolve();
             }
         });
-
-    }
-
-    public setInterval(interval: number): ShortPolling {
-        this._interval = interval * 1000;
-        return this;
     }
 
     public setTimeout(timeout: number): Retry {
@@ -47,5 +40,10 @@ export default class ShortPolling extends Retry {
 
     private resolve(): void {
         this._resolve && this._resolve(this._result);
+    }
+
+    public setInterval(interval: number): ShortPolling {
+        this._interval = interval * 1000;
+        return this;
     }
 }
