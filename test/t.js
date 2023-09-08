@@ -5,7 +5,7 @@ const Retry = require('../dist/src/retry/Retry');
 const LongPolling = require('../dist/src/retry/LongPolling').default;
 const ShortPolling = require('../dist/src/retry/ShortPolling').default;
 const Exponential = require('../dist/src/retry/Exponential').default;
-
+const Linear = require('../dist/src/retry/Linear').default
 
 const url = "https://jsonplaceholder.typicode.com/todos/1";
 
@@ -179,12 +179,34 @@ const url = "https://jsonplaceholder.typicode.com/todos/1";
 // })()
 
 
+// (async function exponentialTest() {
+//     const exp = (new Exponential())
+//         .setInterval(2)
+//         .setMaxRetries(5)
+//         .setTimeout(5)
+//         .onResponse(r => console.log("ON RESPONSE: ", r));
+
+
+//     const result = await reqmate
+//         .get(url)
+//         .setCaching()
+//         .setRetry(exp)
+//         .send();
+
+//     const cached = await reqmate
+//         .get(url)
+//         .setRetry(exp)
+//         .send();
+//     console.log({ result, cached })
+// })()
+
+
 (async function exponentialTest() {
-    const exp = (new Exponential())
+    const exp = (new Linear())
         .setInterval(2)
-        .setMaxRetries(5)
-        .setTimeout(5)
-        .onResponse(r => console.log("ON RESPONSE: ", r));
+        .setMaxRetries(10)
+        // .setTimeout(5)
+        .onResponse(r => console.log("ON RESPONSE: ", r.status));
 
 
     const result = await reqmate

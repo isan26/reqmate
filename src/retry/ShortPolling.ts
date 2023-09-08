@@ -1,7 +1,6 @@
 import Retry from "./Retry";
 
 export default class ShortPolling extends Retry {
-
     private _interval: number = 0;
     private _result: unknown;
     private _timer: any | null = null;

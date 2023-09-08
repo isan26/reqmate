@@ -35,7 +35,7 @@ export default class Exponential extends Retry {
         this._resolve && this._resolve(this._result);
     }
 
-    public setInterval(interval: number): Exponential {
+    public setInterval(interval: number) {
         this._interval = interval * 1000;
         return this;
     }
