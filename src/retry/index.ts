@@ -1,11 +1,7 @@
-import Exponential from "./Exponential";
-import Linear from "./Linear";
-import LongPolling from "./LongPolling";
-import ShortPolling from "./ShortPolling";
+import Polling from "./Polling";
+import Timed from "./Timed";
 
 export default {
-    Exponential,
-    Linear,
-    LongPolling,
-    ShortPolling
+    Polling,
+    Timed,
 }

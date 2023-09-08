@@ -2,10 +2,9 @@ const reqmate = require('../dist/src/').default
 const MapCache = require('../dist/src/MapCache').default;
 
 const Retry = require('../dist/src/retry/Retry');
-const LongPolling = require('../dist/src/retry/LongPolling').default;
-const ShortPolling = require('../dist/src/retry/ShortPolling').default;
-const Exponential = require('../dist/src/retry/Exponential').default;
-const Linear = require('../dist/src/retry/Linear').default
+const Polling = require('../dist/src/retry/LongPolling').default;
+const Timed = require('../dist/src/retry/Timed').default;
+
 
 const url = "https://jsonplaceholder.typicode.com/todos/1";
 
@@ -180,26 +179,38 @@ const url = "https://jsonplaceholder.typicode.com/todos/1";
 
 
 (async function exponentialTest() {
-    const exp = (new Exponential())
-        .setInterval(20)
+
+    const exp = (new Timed())
+        // .setInterval(200)
         // .setMaxRetries(5)
-        .setTimeout(1000)
-        .onResponse(r => console.log("ON RESPONSE: ", r));
+        // .setIntervalCallback(Timed.doStaticBackoff())
+        // .setIntervalCallback(Timed.doLinearBackoff(200))
+        // .setIntervalCallback(Timed.doExponentialBackoff())
+        // .setIntervalCallback(Timed.doNoBackoff())
+        .setIntervalCallback(Timed.doRandomBackoff(200, 1000))
+        // .setTimeout(1000)
+        .onResponse(r => console.log("ON RESPONSE: ", r.status));
 
 
     const result = await reqmate
         .get(url)
         .setCaching()
-        .setRetry(exp)
+        .setRetry({
+            type: "polling",
+            maxRetries: 2,
+            onResponse: (e) => console.log(e.status)
+        })
         .send();
 
     const cached = await reqmate
         .get(url)
         .setRetry(exp)
         .send();
-    console.log({ result, cached })
-})()
 
+    console.log({ result: result.cached, cached: cached.cached })
+})()
+// Timed, Polling, TimedExponential, TimedLinear etc..
+// Timed can have the expiration algorithm injected, by default will be the regular polling
 
 // (async function exponentialTest() {
 //     const exp = (new Linear())

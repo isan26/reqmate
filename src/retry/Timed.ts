@@ -1,12 +1,14 @@
 import Retry from "./base/Retry";
 
-export default class ShortPolling extends Retry {
+export default class Timed extends Retry {
     public _interval: number = 0;
     private _result: unknown;
     private _timer: any | null = null;
     private _resolve: ((value: unknown) => void) | null = null;
+    private _intervalCallback: ((interval: number) => number) = Timed.doStaticBackoff();
 
     public async execute(): Promise<unknown> {
+        console.log('execute', this._interval);
         return new Promise(async (resolve) => {
             !this._resolve && (this._resolve = resolve);
             try {
@@ -18,7 +20,7 @@ export default class ShortPolling extends Retry {
             } finally {
                 this._retries++;
                 this._timer = setTimeout(this.execute.bind(this), this._interval);
-                this._interval = this.interval;
+                this._interval = this._intervalCallback!(this._interval);
             }
 
             if (this._done || (this._maxRetries > -1 && this._retries >= this._maxRetries)) {
@@ -28,8 +30,9 @@ export default class ShortPolling extends Retry {
         });
     }
 
-    get interval() {
-        return this._interval
+    public setIntervalCallback(callback: typeof this._intervalCallback) {
+        this._intervalCallback = callback;
+        return this;
     }
 
     public setTimeout(timeout: number) {
@@ -50,4 +53,39 @@ export default class ShortPolling extends Retry {
         this._interval = interval;
         return this;
     }
+
+    static doExponentialBackoff(factor: number = 2, maxInterval: number = Number.MAX_SAFE_INTEGER) {
+        return (interval: number) => {
+            return Math.min(interval * factor, maxInterval);
+        }
+    }
+
+
+    static doLinearBackoff(factor: number = 200, maxInterval: number = Number.MAX_SAFE_INTEGER) {
+        return (interval: number) => {
+            return Math.min(interval + factor, maxInterval);
+        }
+    }
+
+    static doStaticBackoff() {
+        return (interval: number) => interval;
+    }
+
+
+    static doRandomBackoff(minIterval: number, maxInterval: number) {
+        return () => {
+
+            if (minIterval >= maxInterval) {
+                throw new Error('timeout cannot be greater than maxInterval');
+            };
+
+            return Math.floor(Math.random() * (maxInterval - minIterval) + minIterval);
+        }
+    }
+
+    static doNoBackoff() {
+        return () => 0;
+    }
+
+
 }

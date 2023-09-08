@@ -1,6 +1,6 @@
 import Retry from "./base/Retry";
 
-export default class LongPolling extends Retry {
+export default class Polling extends Retry {
 
     public async execute(): Promise<unknown> {
         let result: unknown;

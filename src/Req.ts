@@ -1,5 +1,6 @@
 import mapCache, { MapCache } from "./MapCache";
 import Retry from "./retry/base/Retry";
+import RetryFactory, { RetryTypes } from "./retry/RetryFactory";
 
 type Res<T> = {
     data: T,
@@ -189,9 +190,9 @@ export default class Req {
         return headers;
     }
 
-    public setRetry(retry: Retry): Req {
+    public setRetry(retry: RetryTypes): Req {
         console.log('retry', retry instanceof Retry);
-        this._retry = retry;
+        this._retry = RetryFactory.build(retry);
         return this;
     }
 
