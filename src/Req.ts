@@ -1,5 +1,5 @@
 import mapCache, { MapCache } from "./MapCache";
-import Retry from "./retry/Retry";
+import Retry from "./retry/base/Retry";
 
 type Res<T> = {
     data: T,
@@ -209,7 +209,7 @@ export default class Req {
     }
 
     public setTimeout(timeout: number): Req {
-        this._timeout = timeout * 1000;
+        this._timeout = timeout;
         return this;
     }
 

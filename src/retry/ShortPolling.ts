@@ -1,7 +1,7 @@
-import Retry from "./Retry";
+import Retry from "./base/Retry";
 
 export default class ShortPolling extends Retry {
-    private _interval: number = 0;
+    public _interval: number = 0;
     private _result: unknown;
     private _timer: any | null = null;
     private _resolve: ((value: unknown) => void) | null = null;
@@ -18,6 +18,7 @@ export default class ShortPolling extends Retry {
             } finally {
                 this._retries++;
                 this._timer = setTimeout(this.execute.bind(this), this._interval);
+                this._interval = this.interval;
             }
 
             if (this._done || (this._maxRetries > -1 && this._retries >= this._maxRetries)) {
@@ -27,22 +28,26 @@ export default class ShortPolling extends Retry {
         });
     }
 
-    public setTimeout(timeout: number): Retry {
+    get interval() {
+        return this._interval
+    }
+
+    public setTimeout(timeout: number) {
         setTimeout(() => {
             this._done = true;
             this._timer && clearTimeout(this._timer);
             this.resolve();
-        }, timeout * 1000);
+        }, timeout);
         return this;
     }
 
 
-    private resolve(): void {
+    public resolve(): void {
         this._resolve && this._resolve(this._result);
     }
 
-    public setInterval(interval: number): ShortPolling {
-        this._interval = interval * 1000;
+    public setInterval(interval: number) {
+        this._interval = interval;
         return this;
     }
 }

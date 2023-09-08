@@ -31,7 +31,7 @@ export default class Retry {
     public setTimeout(timeout: number): Retry {
         setTimeout(() => {
             this._done = true;
-        }, timeout * 1000);
+        }, timeout);
         return this;
     }
 

@@ -21,10 +21,9 @@ export class MapCache {
     }
 
     public expire(key: string, ttl: number): void {
-        const miliseconds = ttl * 1000;
         setTimeout(() => {
             this.delete(key);
-        }, miliseconds);
+        }, ttl);
     }
 
     public clear(): void {

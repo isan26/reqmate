@@ -1,4 +1,4 @@
-import Retry from "./Retry";
+import Retry from "./base/Retry";
 
 export default class LongPolling extends Retry {
 

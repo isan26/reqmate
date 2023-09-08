@@ -179,34 +179,12 @@ const url = "https://jsonplaceholder.typicode.com/todos/1";
 // })()
 
 
-// (async function exponentialTest() {
-//     const exp = (new Exponential())
-//         .setInterval(2)
-//         .setMaxRetries(5)
-//         .setTimeout(5)
-//         .onResponse(r => console.log("ON RESPONSE: ", r));
-
-
-//     const result = await reqmate
-//         .get(url)
-//         .setCaching()
-//         .setRetry(exp)
-//         .send();
-
-//     const cached = await reqmate
-//         .get(url)
-//         .setRetry(exp)
-//         .send();
-//     console.log({ result, cached })
-// })()
-
-
 (async function exponentialTest() {
-    const exp = (new Linear())
-        .setInterval(2)
-        .setMaxRetries(10)
-        // .setTimeout(5)
-        .onResponse(r => console.log("ON RESPONSE: ", r.status));
+    const exp = (new Exponential())
+        .setInterval(20)
+        // .setMaxRetries(5)
+        .setTimeout(1000)
+        .onResponse(r => console.log("ON RESPONSE: ", r));
 
 
     const result = await reqmate
@@ -221,3 +199,25 @@ const url = "https://jsonplaceholder.typicode.com/todos/1";
         .send();
     console.log({ result, cached })
 })()
+
+
+// (async function exponentialTest() {
+//     const exp = (new Linear())
+//         .setInterval(500)
+//         .setMaxRetries(10)
+//         // .setTimeout(5)
+//         .onResponse(r => console.log("ON RESPONSE: ", r.status));
+
+
+//     const result = await reqmate
+//         .get(url)
+//         .setCaching()
+//         .setRetry(exp)
+//         .send();
+
+//     const cached = await reqmate
+//         .get(url)
+//         .setRetry(exp)
+//         .send();
+//     console.log({ result, cached })
+// })()
