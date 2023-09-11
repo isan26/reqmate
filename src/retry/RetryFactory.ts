@@ -14,10 +14,8 @@ export default class RetryFactory {
 
     private static buildFromObject(config: TimedConfig | PollingConfig) {
         switch (config.type) {
-            case 'timed':
-                return RetryFactory.buildTimed(config);
-            case 'polling':
-                return RetryFactory.buildPolling(config);
+            case 'timed': return RetryFactory.buildTimed(config);
+            case 'polling': return RetryFactory.buildPolling(config);
             default:
                 throw new Error('Invalid retry type');
         }
@@ -48,24 +46,23 @@ export default class RetryFactory {
 
 type TimedConfig = {
     type: 'timed',
-    interval: number,
-    maxRetries: number,
-    callback: Function,
-    onResponse: (response: unknown, done: () => void) => void,
-    onError: (response: unknown, done: () => void) => void,
-    intervalCallback: (interval: number) => number,
-    timeout: number
+    interval?: number,
+    maxRetries?: number,
+    callback?: Function,
+    onResponse?: (response: unknown, done: () => void) => void,
+    onError?: (response: unknown, done: () => void) => void,
+    intervalCallback?: (interval: number) => number,
+    timeout?: number
 }
 
 type PollingConfig = {
     type: 'polling',
-    interval: number,
-    maxRetries: number,
-    callback: Function,
-    onResponse: (response: unknown, done: () => void) => void,
-    onError: (response: unknown, done: () => void) => void,
-    intervalCallback: (interval: number) => number,
-    timeout: number
+    interval?: number,
+    maxRetries?: number,
+    callback?: Function,
+    onResponse?: (response: unknown, done: () => void) => void,
+    onError?: (response: unknown, done: () => void) => void,
+    timeout?: number
 }
 
 

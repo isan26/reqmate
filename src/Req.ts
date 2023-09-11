@@ -1,4 +1,4 @@
-import mapCache, { MapCache } from "./MapCache";
+import mapCache, { MapCache } from "./cache/MapCache";
 import Retry from "./retry/base/Retry";
 import RetryFactory, { RetryTypes } from "./retry/RetryFactory";
 
@@ -38,7 +38,7 @@ export default class Req {
 
     private _requestKey: string;
 
-    private _parser: ((req: Response) => Promise<unknown>) | undefined = undefined;
+    private _parser: ((req: Response) => Promise<unknown>) | ((req: Response) => unknown) | undefined = undefined;
     private _parsers = {
         'application/json': (req: Response) => req.json(),
         'text/plain': (req: Response) => req.text(),
@@ -72,7 +72,7 @@ export default class Req {
     constructor(
         private readonly _method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH" = "GET",
         private readonly _url: string,
-        private readonly _body: BodyInit | undefined = undefined
+        private readonly _body: BodyInit | Object | undefined = undefined
     ) {
         this._requestKey = MapCache.generateKey({ url: _url, method: _method, body: _body });
         this._headers['Content-Type'] = 'application/json';
@@ -133,9 +133,13 @@ export default class Req {
     }
 
     private get config(): RequestInit {
-        const contentType = this._headers['Content-Type'];
-        const isBodyTypeJson = contentType === 'application/json' && typeof this._body === 'object';
-        const body = isBodyTypeJson ? JSON.stringify(this._body) : this._body;
+        const isValidBodyInit = typeof this._body === 'string' ||
+            this._body instanceof Blob ||
+            this._body instanceof FormData ||
+            this._body instanceof URLSearchParams ||
+            this._body instanceof ReadableStream;
+
+        const body = isValidBodyInit ? this._body as BodyInit : JSON.stringify(this._body);
 
         return {
             method: this._method,
@@ -162,7 +166,7 @@ export default class Req {
     }
 
 
-    private parseResponse(res: Response): Promise<unknown> {
+    private parseResponse(res: Response): Promise<unknown> | unknown {
         const parser = this.getRequestParser(res) || this._parsers['application/json'];
 
         return parser(res);
@@ -191,12 +195,11 @@ export default class Req {
     }
 
     public setRetry(retry: RetryTypes): Req {
-        console.log('retry', retry instanceof Retry);
         this._retry = RetryFactory.build(retry);
         return this;
     }
 
-    public setParser(parser: (req: Response) => Promise<unknown>): Req {
+    public setParser(parser: (req: Response) => Promise<unknown> | unknown): Req {
         this._parser = parser;
         return this;
     }
