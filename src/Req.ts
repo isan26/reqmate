@@ -1,8 +1,8 @@
-import mapCache, { MapCache } from "./cache/MapCache";
+import ReqMateCache from "./cache/ReqMateCache";
 import Retry from "./retry/base/Retry";
 import RetryFactory, { RetryTypes } from "./retry/RetryFactory";
 
-type Res<T> = {
+type ReqMateResponse<T> = {
     data: T,
     ok: Boolean,
     status: number,
@@ -11,7 +11,7 @@ type Res<T> = {
     cacheKey?: string,
 }
 
-type ReqConfig = {
+type ReqMateReqConfig = {
     mode: "cors" | "no-cors" | "same-origin" | "navigate" | undefined,
     credentials: "omit" | "same-origin" | "include" | undefined,
     cache: "default" | "no-store" | "reload" | "no-cache" | "force-cache" | "only-if-cached" | undefined,
@@ -22,7 +22,7 @@ type ReqConfig = {
 export default class Req {
     private _headers: Record<string, string> = {};
 
-    private reqConfig: ReqConfig = {
+    private reqConfig: ReqMateReqConfig = {
         mode: undefined,
         credentials: undefined,
         cache: undefined,
@@ -36,7 +36,7 @@ export default class Req {
     private _willCache: boolean = false;
     private _cacheTTL: number = 0;
 
-    private _requestKey: string;
+    private _requestKey: string = "";
 
     private _parser: ((req: Response) => Promise<unknown>) | ((req: Response) => unknown) | undefined = undefined;
     private _parsers = {
@@ -70,35 +70,52 @@ export default class Req {
     } as Record<string, (req: Response) => Promise<unknown>>;
 
     constructor(
+        private readonly _cacheStore: ReqMateCache,
         private readonly _method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH" = "GET",
         private readonly _url: string,
-        private readonly _body: BodyInit | Object | undefined = undefined
+        private readonly _body: BodyInit | Object | undefined = undefined,
     ) {
-        this._requestKey = MapCache.generateKey({ url: _url, method: _method, body: _body });
         this._headers['Content-Type'] = 'application/json';
     }
 
 
-    public async send<T>(): Promise<Res<T>> {
-        if (mapCache.has(this._requestKey)) {
+    public async send<T>(): Promise<ReqMateResponse<T>> {
+        if (await this.isRequestCached()) {
             return this.getResultFromCache<T>()!;
         }
 
         const result = this._retry ? await this.getResultFromRetrier<T>() : await this.getResultFromFetch<T>();
-        this._willCache && mapCache.set(this._requestKey, result, this._cacheTTL);
+        this._willCache && this.storeOnCache<T>(result);
 
         return result;
     }
 
 
-    private getResultFromCache<T>(): Res<T> {
-        const result = mapCache.get(this._requestKey) as Res<T>;
+    private async isRequestCached(): Promise<boolean> {
+        if (await this._cacheStore.size() === 0) return false;
+
+        const key = await this._cacheStore.generateKey({ url: this._url, method: this._method, body: this._body });
+
+        this._requestKey = key;
+        return await this._cacheStore.has(key);
+    }
+
+    private async storeOnCache<T>(result: ReqMateResponse<T>) {
+        if (!this._willCache) return;
+
+        this._requestKey = await this._cacheStore.generateKey({ url: this._url, method: this._method, body: this._body });
+        this._cacheStore.set(this._requestKey, result, this._cacheTTL);
+    }
+
+
+    private async getResultFromCache<T>(): Promise<ReqMateResponse<T>> {
+        const result = await this._cacheStore.get(this._requestKey) as ReqMateResponse<T>;
         result.cached = true;
         result.cacheKey = this._requestKey;
         return result;
     }
 
-    private async getResultFromRetrier<T>(): Promise<Res<T>> {
+    private async getResultFromRetrier<T>(): Promise<ReqMateResponse<T>> {
         const callback = async () => {
             const res = await this.sendRequest();
             const data = await this.parseResponse(res) as T;
@@ -110,10 +127,10 @@ export default class Req {
                 data: data,
             }
         }
-        return await this._retry!.setCallback(callback.bind(this)).execute() as Res<T>;
+        return await this._retry!.setCallback(callback.bind(this)).execute() as ReqMateResponse<T>;
     }
 
-    private async getResultFromFetch<T>(): Promise<Res<T>> {
+    private async getResultFromFetch<T>(): Promise<ReqMateResponse<T>> {
         const res = await this.sendRequest();
         const data = await this.parseResponse(res) as T;
 
@@ -228,7 +245,7 @@ export default class Req {
     }
 
 
-    public setConfig(config: Partial<ReqConfig>): Req {
+    public setConfig(config: Partial<ReqMateReqConfig>): Req {
         Object.assign(this.reqConfig, config);
         return this;
     }

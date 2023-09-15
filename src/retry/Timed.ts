@@ -8,7 +8,6 @@ export default class Timed extends Retry {
     private _intervalCallback: ((interval: number) => number) = Timed.doStaticBackoff();
 
     public async execute(): Promise<unknown> {
-        console.log('execute', this._interval);
         return new Promise(async (resolve) => {
             !this._resolve && (this._resolve = resolve);
             try {

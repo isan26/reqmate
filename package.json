@@ -4,7 +4,8 @@
   "description": "Http client on top of fetch for browser and NodeJS, include retry, polling and caching",
   "main": "dist/index.js",
   "scripts": {
-    "test": "rm -rf ./dist &&  jest"
+    "test": "rm -rf ./dist &&  jest",
+    "build": "tsc"
   },
   "author": "Isan",
   "license": "ISC",

@@ -1,56 +1,60 @@
-export class MapCache {
+import ReqMateCache from "./ReqMateCache";
 
+export class MapCache implements ReqMateCache {
+    private store: Map<string, unknown>;
 
-    constructor(private store = new Map()) { }
+    constructor() {
+        this.store = new Map<string, unknown>();
+    }
 
-    public has(key: string): boolean {
+    async has(key: string): Promise<boolean> {
         return this.store.has(key);
     }
 
-    public set(key: string, value: unknown, ttl: number = 0): void {
+    async set(key: string, value: unknown, ttl: number = 0): Promise<void> {
         this.store.set(key, value);
-        ttl > 0 && this.expire(key, ttl);
+        (ttl > 0) && this.expire(key, ttl);
     }
 
-    public get(key: string): unknown {
+    async get(key: string): Promise<unknown> {
         return this.store.get(key);
     }
 
-    public delete(key: string): boolean {
+    async delete(key: string): Promise<boolean> {
         return this.store.delete(key);
     }
 
-    public expire(key: string, ttl: number): void {
+    async expire(key: string, ttl: number): Promise<void> {
         setTimeout(() => {
             this.delete(key);
         }, ttl);
     }
 
-    public clear(): void {
+    async clear(): Promise<void> {
         this.store.clear();
     }
 
-    public get size(): number {
+    async size(): Promise<number> {
         return this.store.size;
     }
 
-    public get keys(): IterableIterator<string> {
+    async keys(): Promise<IterableIterator<string>> {
         return this.store.keys();
     }
 
-    public get values(): IterableIterator<unknown> {
+    async values(): Promise<IterableIterator<unknown>> {
         return this.store.values();
     }
 
-    public entries(): IterableIterator<[string, unknown]> {
+    async entries(): Promise<IterableIterator<[string, unknown]>> {
         return this.store.entries();
     }
 
-    public forEach(callbackfn: (value: unknown, key: string, map: Map<string, unknown>) => void, thisArg?: unknown): void {
+    async forEach(callbackfn: (value: unknown, key: string, map: Map<string, unknown>) => void, thisArg?: unknown): Promise<void> {
         this.store.forEach(callbackfn, thisArg);
     }
 
-    static generateKey(target: Object) {
+    async generateKey(target: Object): Promise<string> {
         const str = JSON.stringify(target, Object.keys(target).sort());
 
         let hash = 0;
@@ -61,7 +65,6 @@ export class MapCache {
         }
         return hash.toString();
     }
-
 }
 
 export default new MapCache();

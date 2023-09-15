@@ -2,6 +2,7 @@
 Bun.serve({
     development: true,
     async fetch(req: Request) {
+        console.log("REQUEST: ", req.method);
         const headers = new Headers();
         headers.append('Access-Control-Allow-Origin', '*');
         headers.append('Access-Control-Allow-Methods', 'GET, POST, PATCH, PUT, DELETE');
