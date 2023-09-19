@@ -5,6 +5,7 @@ Uncomplicated and extensible HTTP client lib on top of fetch with caching and re
 ## Table of Contents
 
 - [Basic Usage](#basic-usage)
+- [Request Configuration](#request-configuration)
 - [Response](#response)
 - [Parser](#parser)
 - [Caching](#caching)
@@ -50,16 +51,35 @@ const deleteRequest = await reqmate.delete("/product/666").send();
 
 ```
 
+## Request Configuration
+
+The fields `mode`, `credentials`, `cache` and `redirect` can be especified by setting the request's config.
+
+The following code snippet
+
+```javascript
+const getRequest = await reqmate
+            .get("/product?id=666")
+            .setConfig({
+                mode : "cors",
+                credentials : "include",
+                cache : "no-cache",
+                redirect : "follow"
+            })
+            .send();
+
+```
+
 ## Response
 
 The response object contains:
 
-- ok: Boolean value, true if request is a success (is the standard fetch ok field)
-- status : Number value, status code of the request
-- headers : Object with the headers.
-- cached : Boolean value, will be true if the request was cached
-- cacheKey (optional) : String, string value with the cache key.
-- data : Result from parsing the response from the server
+- **ok**: Boolean value, true if request is a success (is the standard fetch ok field)
+- **status** : Number value, status code of the request
+- **headers** : Object with the headers.
+- **cached** : Boolean value, will be true if the request was cached
+- **cacheKey** (optional) : String, string value with the cache key.
+- **data** : Result from parsing the response from the server
 
 ```JSON
 {
@@ -550,6 +570,133 @@ console.log(await reqmate.cache.size())
 
 ## Retry
 
-Explain factory
-Using retry classes instead of factory object.
-Using retry mechanism with other types of promises.
+### Factory
+
+We can use the retry mechanisms by either creating the correct retry using the `RetryFactory` or by instantiating the especific retry classes ourselves. This retry mechanism can be reused with another promises as we will see.
+
+Creating a Retry object of type polling with the Factory. Objects of type timed can also be created.
+
+```typescript
+import RetryFactory from 'reqmate/retry/RetryFactory';
+
+const retry = RetryFactory.build({
+        type: 'polling',
+        maxRetries: 3,
+        onResponse: (r, done) => console.log('RESPONSE: ', r),
+        onError : (err, done) =>  console.error(err),
+    });
+
+```
+
+### Retry Classes
+
+We can instantiate the `Polling` and `Timed` directly from their own classes and inject then using the `setRetry`.
+
+Check the examples bellow, it uses again the builder pattern to setup the values on a chain before injecting it to reqmate's request. You can do it all in one chain like in the Polling example or instantiate the class first and add the steps to the const like in timed.
+
+```typescript
+
+    async function doPolling() {
+        // Doing one chain.
+        const polling = (new Polling())
+            .onResponse((r) => console.log('RESPONSE: ', r))
+            .onError((e) => console.log('ERROR: ', e))
+            .setMaxRetries(3);
+
+        const { data } = await reqmate
+            .get("https://jsonplaceholder.typicode.com/todos/1")
+            .setRetry(polling)
+            .send<Record<string, string>>();
+
+        console.log({ data })
+    }
+
+
+
+    async function doTimed() {
+        // Instantiating the class
+        const timed = new Timed();
+
+        // Adding the steps.
+        timed.onResponse((r) => console.log('RESPONSE: ', r))
+            .onError((e) => console.log('ERROR: ', e))
+            .setMaxRetries(3)
+            .setInterval(1000)
+            .setTimeout(10000)
+            .setIntervalCallback(Timed.doExponentialBackoff());
+
+        const { data } = await reqmate
+            .get("https://jsonplaceholder.typicode.com/todos/1")
+            .setRetry(timed)
+            .send<Record<string, string>>();
+
+        console.log({ data })
+    }
+
+```
+
+### Other usages for retry
+
+The retries mechanisms can be used as an standalone utility to execute promises using these strategies. The keys for this are two other methods:
+
+- `setCallback` : Sets the callback to be executed, this callback is expected to return a promise.
+- `execute`: Will trigger the execution.
+
+On the example bellow, we are reading information from a file and the process will stop when the value from the file is the string value '3'.
+On the other hand, we are writing into the file a counter that will increase every second, so the reading will stop when the writing puts the value '3' into the file.
+
+```javascript
+const fs = require('fs').promises;
+const { Polling, Timed } = require('reqmate');
+
+
+// Test promise for reading a file
+async function readFile(filePath) {
+    try {
+        const data = await fs.readFile(filePath, 'utf8');
+        return data;
+    } catch (error) {
+        throw new Error(`Could not read the file: ${error.message}`);
+    }
+}
+
+// Test promise for writing into a file
+async function writeFile(filePath, data) {
+    try {
+        await fs.writeFile(filePath, data, 'utf8');
+        console.log('Data successfully written to file.');
+    } catch (error) {
+        throw new Error(`Could not write to the file: ${error.message}`);
+    }
+}
+
+
+async function readTimed() {
+    // Will do a Polling on readFile until the value of the file is '3'.
+    (new Polling())
+        .setCallback(() => readFile('file.txt'))
+        .onResponse((r, done) => {
+            console.log("READING: ", r)
+
+            if (r === "3") done();
+        })
+        .execute();
+
+}
+
+async function writeTimed() {
+    // Will write the counter into the file with 1 second interval
+    let counter = 0;
+    const timed = new Timed();
+    timed.setInterval(1000)
+        .setTimeout(5000)
+        .setCallback(() => {
+            counter++;
+            writeFile('file.txt', `${counter}`)
+        })
+        .execute();
+}
+
+readTimed();
+writeTimed();
+```

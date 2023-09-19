@@ -8,27 +8,27 @@ export default class Retry {
         console.log('callback not set');
     };
 
-    public setCallback(callback: () => Promise<unknown>): Retry {
+    public setCallback(callback: () => Promise<unknown>) {
         this.callback = callback;
         return this;
     }
 
-    public onResponse(callback: (response: unknown, done: () => void) => void): Retry {
+    public onResponse(callback: (response: unknown, done: () => void) => void) {
         this._onResponse = callback;
         return this;
     }
 
-    public onError(callback: (error: unknown, done: () => void) => void): Retry {
+    public onError(callback: (error: unknown, done: () => void) => void) {
         this._onFailure = callback;
         return this;
     }
 
-    public setMaxRetries(maxRetry: number): Retry {
+    public setMaxRetries(maxRetry: number) {
         this._maxRetries = maxRetry;
         return this;
     }
 
-    public setTimeout(timeout: number): Retry {
+    public setTimeout(timeout: number) {
         setTimeout(() => {
             this._done = true;
         }, timeout);

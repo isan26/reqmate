@@ -10,6 +10,7 @@ import TimedComponent from './Timed';
 
 import LocalStorageCache from './LocalCache';
 
+import RetryTest from './RetryTest';
 
 function App() {
   const [state, setState] = useState({})
@@ -168,6 +169,9 @@ function App() {
 
       <hr />
       <TimedComponent />
+
+      <hr />
+      <RetryTest />
     </>
   )
 }
