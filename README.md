@@ -19,8 +19,11 @@ Uncomplicated and extensible HTTP client lib on top of fetch with caching and re
     - [Random](#randomg)
     - [Custom](#custom)
 - [Advanced](#advanced)
-  - [Cache](#implementing-own-cache)
-  - [Retry](#advanced-retry)
+  - [Implementing custom cache](#implementing-custom-cache)
+  - [Retry in depth](#retry-in-depth)
+    - [Factory](#factory)
+    - [Retry Classes](#retry-classes)
+    - [Other uses for retry](#other-uses-for-retry)
 
 ## Basic Usage
 
@@ -398,7 +401,7 @@ Example of a custom made retry mechanism, this retry will alternate between 1 an
 
 # Advanced
 
-## Cache
+## Implementing custom cache
 
 ReqMate comes with a default in memory cache but this can be overriten to use a custom implementation. A cache must implement the ReqMateCache interface:
 
@@ -568,7 +571,7 @@ console.log(await reqmate.cache.size())
 
 ```
 
-## Retry
+## Retry in depth
 
 ### Factory
 
@@ -635,7 +638,7 @@ Check the examples bellow, it uses again the builder pattern to setup the values
 
 ```
 
-### Other usages for retry
+### Other uses for retry
 
 The retries mechanisms can be used as an standalone utility to execute promises using these strategies. The keys for this are two other methods:
 
