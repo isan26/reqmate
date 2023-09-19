@@ -11,7 +11,7 @@ export default class Timed extends Retry {
         return new Promise(async (resolve) => {
             !this._resolve && (this._resolve = resolve);
             try {
-                this._result = await this.callback!();
+                this._result = await this.callback();
                 this._onResponse(this._result, this.done.bind(this));
             } catch (error) {
                 this._result = error;
@@ -19,7 +19,7 @@ export default class Timed extends Retry {
             } finally {
                 this._retries++;
                 this._timer = setTimeout(this.execute.bind(this), this._interval);
-                this._interval = this._intervalCallback!(this._interval);
+                this._interval = this._intervalCallback(this._interval);
             }
 
             if (this._done || (this._maxRetries > -1 && this._retries >= this._maxRetries)) {
@@ -53,6 +53,11 @@ export default class Timed extends Retry {
         return this;
     }
 
+    /**
+     * Exponential backoff strategy
+     * @param factor exponential factor, default 2
+     * @param maxInterval max interval, the interval will not be greater than this value, default Number.MAX_SAFE_INTEGER
+     */
     static doExponentialBackoff(factor: number = 2, maxInterval: number = Number.MAX_SAFE_INTEGER) {
         return (interval: number) => {
             return Math.min(interval * factor, maxInterval);
@@ -60,17 +65,31 @@ export default class Timed extends Retry {
     }
 
 
+    /**
+     * Linear Backoff strategy
+     * @param factor time in milliseconds to add to the interval, default 200
+     * @param maxInterval max interval, the interval will not be greater than this value, default Number.MAX_SAFE_INTEGER
+     */
     static doLinearBackoff(factor: number = 200, maxInterval: number = Number.MAX_SAFE_INTEGER) {
         return (interval: number) => {
             return Math.min(interval + factor, maxInterval);
         }
     }
 
+
+    /**
+     * Static backoff strategy
+     */
     static doStaticBackoff() {
         return (interval: number) => interval;
     }
 
 
+    /**
+     * Random backoff strategy
+     * @param minIterval smaller end of the interval
+     * @param maxInterval  greater end of the interval
+     */
     static doRandomBackoff(minIterval: number, maxInterval: number) {
         return () => {
 

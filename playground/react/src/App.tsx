@@ -5,7 +5,10 @@ import reqmate from '../../../src';
 import Polling from '../../../src/retry/Polling';
 import Timed from '../../../src/retry/Timed';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import TimedComponent from './Timed';
+
+import LocalStorageCache from './LocalCache';
 
 
 function App() {
@@ -53,14 +56,17 @@ function App() {
     //   .setMaxRetries(3)
     //   .onResponse((r) => console.log('RESPONSE: ', r));
 
+    reqmate.cache = new LocalStorageCache("app_");
+
     const r = await reqmate
-      .get('http://localhost:3000')
+      .get('https://jsonplaceholder.typicode.com/todos/1')
       .setCaching(500000)
       // .setRetry(polling)
       // .setRetry({
       //   type: 'polling',
       //   maxRetries: 3,
-      //   onResponse: (r) => console.log('RESPONSE: ', r)
+      //   onResponse: (r) => console.log('RESPONSE: ', r),
+      //   onError: (e) => console.log('ERROR: ', e),
       // })
       .setRetry({
         type: 'timed',
@@ -72,6 +78,12 @@ function App() {
       .send();
 
     console.log(r)
+
+    console.log("HAS: ", await reqmate.cache.has(r.cacheKey!));
+    console.log("GET:", await reqmate.cache.get(r.cacheKey!));
+    console.log("KEYS: ", await reqmate.cache.keys());
+    console.log("VALUES: ", [...await reqmate.cache.values()]);
+    // await reqmate.cache.clear();
     setState(r.data as any)
 
   }
@@ -153,6 +165,9 @@ function App() {
       <button onClick={doPut}>PUT</button>
       <button onClick={doPatch}>PATCH</button>
       <button onClick={doDelete}>DELETE</button>
+
+      <hr />
+      <TimedComponent />
     </>
   )
 }

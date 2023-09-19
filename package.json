@@ -1,11 +1,26 @@
 {
   "name": "courier",
   "version": "1.0.0",
-  "description": "Http client on top of fetch for browser and NodeJS, include retry, polling and caching",
+  "description": "Lightway dependency free Http client on top of fetch for browser, NodeJS, Bun etc.., include retry, polling and caching",
+  "keywords": [
+    "http",
+    "client",
+    "fetch",
+    "retry",
+    "polling",
+    "caching",
+    "browser",
+    "nodejs",
+    "bun"
+  ],
   "main": "dist/index.js",
   "scripts": {
     "test": "rm -rf ./dist &&  jest",
     "build": "tsc"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "bun": ">=1.0.0"
   },
   "author": "Isan",
   "license": "ISC",

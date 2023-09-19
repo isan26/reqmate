@@ -26,7 +26,7 @@ export default class RetryFactory {
         config.interval && timed.setInterval(config.interval);
         config.maxRetries && timed.setMaxRetries(config.maxRetries);
         config.onResponse && timed.onResponse(config.onResponse);
-        config.onError && timed.onResponse(config.onError);
+        config.onError && timed.onError(config.onError);
         config.intervalCallback && timed.setIntervalCallback(config.intervalCallback);
         config.timeout && timed.setTimeout(config.timeout);
 
@@ -37,7 +37,7 @@ export default class RetryFactory {
         const polling = new Polling();
         config.maxRetries && polling.setMaxRetries(config.maxRetries);
         config.onResponse && polling.onResponse(config.onResponse);
-        config.onError && polling.onResponse(config.onError);
+        config.onError && polling.onError(config.onError);
         config.timeout && polling.setTimeout(config.timeout);
 
         return polling
