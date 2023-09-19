@@ -9,9 +9,14 @@ Uncomplicated and extensible HTTP client lib on top of fetch with caching and re
 - [Parser](#parser)
 - [Caching](#caching)
 - [Retry](#retry)
+  - [onResponse and onError](#onresponse-and-onerror)
   - [Polling](#polling)
   - [Timed](#timed)
-    - [Strategy](#strategy-for-timed)
+    - [Exponential](#exponential)
+    - [Linear](#linear)
+    - [Static](#static)
+    - [Random](#randomg)
+    - [Custom](#custom)
 - [Advanced](#advanced)
   - [Cache](#implementing-own-cache)
   - [Retry](#advanced-retry)
@@ -168,6 +173,12 @@ Retry, types of retries
 
 ReqMate have two types of retry strategies (Polling and Timed) and the strategies can be configured to achieve different objectives.
 
+### onResponse and onError
+
+For reading each response, we can pass a callback to the onResponse property, onResponse receives 2 parameters, the first one is the parsed response itself and the second one is the done() function, if we call it, it will stop the process inmediatly and reqmate will resolve with the last value from the polling. The same with the onError property, it will trigger when the request fails.
+
+The above example will call done() on the onResponse given a condition or when it errors out.
+
 ### Polling
 
 Polling will start a request when the previous one succeeds or fails untill the maxRetires is reached or the `done()` method is called.
@@ -199,12 +210,6 @@ The simples way to do a retry is by using the Polling mechanism as shown in the 
 This is a way of doing it, by passing an object with the configuration needed for polling.
 Polling has the property maxRetries that specify how many requests will be made.
 
-### onResponse and onError
-
-For reading each response, we can pass a callback to the onResponse property, onResponse receives 2 parameters, the first one is the parsed response itself and the second one is the done() function, if we call it, it will stop the process inmediatly and reqmate will resolve with the last value from the polling. The same with the onError property, it will trigger when the request fails.
-
-The above example will call done() on the onResponse given a condition or when it errors out.
-
 ### Timed
 
 Timed will execute a new request given an interval, this makes the strategy more powerful because we can implement different subtypes of strategies like:
@@ -213,6 +218,8 @@ Timed will execute a new request given an interval, this makes the strategy more
 - Linear Backoff : The time  between requests will increase by a fixed amount.
 - Static Backoff (default) : The time between requests will be the same.
 - Random Backoff : The time between requests will be a random number between 2 values with each call.
+
+#### Exponential
 
 Example of Exponential Backoff:
 
@@ -244,6 +251,8 @@ import reqmate, { Timed } from 'reqmate';
     }
 ```
 
+#### Linear
+
 Example of Exponential Linear:
 
 The `doLinearBackoff` function receives the parameters:
@@ -273,6 +282,8 @@ import reqmate, { Timed } from 'reqmate';
 
 ```
 
+#### Static
+
 Example of Static Backoff (default strategy)
 > The `doStaticBackoff` function, does not receives any parameters.
 All calls will be made with the specified interval.
@@ -296,6 +307,8 @@ All calls will be made with the specified interval.
             .then((res) => console.log('RES: ', res));
     }
 ```
+
+#### Random
 
 Example of Random backoff
 
@@ -323,7 +336,7 @@ The `doRandomBackoff` receives the parameters
     }
 ```
 
-### Strategy for timed
+#### Custom
 
 The reqmate library comes with a few strategies but you can implement your own. The `intervalCallback` is just a high order function that returns a function that return the interval.
 
@@ -356,6 +369,12 @@ Example of a custom made retry mechanism, this retry will alternate between 1 an
     }
 
 ```
+
+<br/>
+<br/>
+<br/>
+<br/>
+<br/>
 
 # Advanced
 
