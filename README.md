@@ -23,6 +23,8 @@ Uncomplicated and extensible HTTP client lib on top of fetch with caching and re
   - [Retry in depth](#retry-in-depth)
     - [Factory](#factory)
     - [Retry Classes](#retry-classes)
+      - [Polling Example](#polling-example)
+      - [Timed Example](#timed-example)
     - [Other uses for retry](#other-uses-for-retry)
 
 ## Basic Usage
@@ -54,6 +56,20 @@ const deleteRequest = await reqmate.delete("/product/666").send();
 
 ```
 
+```typescript
+// Basic example with caching and polling
+
+   const response = await reqmate
+      .get('https://jsonplaceholder.typicode.com/todos/3')
+      .setCache(30000) // Cache will store for 30 seconds
+      .setRetry({
+        type: 'polling',
+        maxRetries: 3,
+        onResponse: (response, done) => console.log({response}),
+      })
+      .send();
+```
+
 ## Request Configuration
 
 The fields `mode`, `credentials`, `cache` and `redirect` can be especified by setting the request's config.
@@ -81,7 +97,7 @@ The response object contains:
 - **status** : Number value, status code of the request
 - **headers** : Object with the headers.
 - **cached** : Boolean value, will be true if the request was cached
-- **cacheKey** (optional) : String, string value with the cache key.
+- **cacheKey** (optional) : String value with the cache key.
 - **data** : Result from parsing the response from the server
 
 ```JSON
@@ -110,7 +126,7 @@ The parser is a promise that will process the "raw" request accordingly.
 
 ReqMate comes with default parsers that are gonna get called depending on the Content-Type header value. So usually we won't have the need to override it, but if needed, the parser can be replaced by setting it using the setParser step of the builder.
 
-The following code snippet shows how to use a custom parser Note that the parser can be a promise, in fact the default parsers are promises.
+The following code snippet shows how to use a custom parser, note that the parser can be a promise, in fact the default parsers are promises.
 
 ```typescript
     const isPostSuccess : Boolean = await reqmate
@@ -166,7 +182,7 @@ function App(){
 
 ## Caching
 
-ReqMate can cache your http calls, by just calling the setCaching step of the builder, by default if we use setCaching without any param, the request will be cached forever, but if we can set a ttl (in milliseconds) and the cache will expire after that period.
+ReqMate can cache your http calls, by just calling the setCaching step of the builder, by default if we use setCaching without any param, the request will be cached forever, but we can set a ttl (in milliseconds) and the cache will expire after that period.
 
 ```javascript
 
@@ -190,8 +206,6 @@ ReqMate can cache your http calls, by just calling the setCaching step of the bu
 
 ```
 
-Retry, types of retries
-
 ## Retry
 
 ReqMate have two types of retry strategies (Polling and Timed) and the strategies can be configured to achieve different objectives.
@@ -200,7 +214,7 @@ ReqMate have two types of retry strategies (Polling and Timed) and the strategie
 
 For reading each response, we can pass a callback to the onResponse property, onResponse receives 2 parameters, the first one is the parsed response itself and the second one is the done() function, if we call it, it will stop the process inmediatly and reqmate will resolve with the last value from the polling. The same with the onError property, it will trigger when the request fails.
 
-The above example will call done() on the onResponse given a condition or when it errors out.
+The bellow example will call `done()` on the onResponse given a condition or when it errors out. Calling `done()` is optional, is a mechanism to stop the process at any time. If we don't call `done()` the process will stop when ever we react the `maxRetries` or when we reach the `timeout` time.
 
 ### Polling
 
@@ -597,6 +611,8 @@ We can instantiate the `Polling` and `Timed` directly from their own classes and
 
 Check the examples bellow, it uses again the builder pattern to setup the values on a chain before injecting it to reqmate's request. You can do it all in one chain like in the Polling example or instantiate the class first and add the steps to the const like in timed.
 
+#### Polling Example
+
 ```typescript
 
     async function doPolling() {
@@ -614,7 +630,11 @@ Check the examples bellow, it uses again the builder pattern to setup the values
         console.log({ data })
     }
 
+```
 
+#### Timed example
+
+```typescript
 
     async function doTimed() {
         // Instantiating the class
