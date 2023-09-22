@@ -12,7 +12,7 @@
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "reqmate": "file:/home/isan/Documents/stdio/reqmate/lib"
+    "reqmate": "^1.0.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.15",

@@ -1,5 +1,5 @@
 const fs = require('fs').promises;
-const { Polling, Timed } = require('reqmate');
+const { Polling, Timed, RetryFactory } = require('reqmate');
 
 async function readFile(filePath) {
     try {

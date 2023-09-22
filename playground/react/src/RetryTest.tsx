@@ -3,6 +3,11 @@ import reqmate, { Timed, Polling } from 'reqmate';
 
 const RetryTest = () => {
     async function doPolling() {
+
+        const r = new RetryFactory({
+            type: 'polling',
+        })
+
         const polling = new Polling();
 
         polling.onResponse((r) => console.log('RESPONSE: ', r))

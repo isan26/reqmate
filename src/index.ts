@@ -2,6 +2,7 @@ import Req from "./Req";
 import mapCache, { MapCache, ReqMateCache } from "./Cache";
 import Timed from "./retry/Timed";
 import Polling from "./retry/Polling";
+import RetryFactory from "./retry/RetryFactory";
 
 class ReqMate {
     debug = false;
@@ -37,6 +38,6 @@ class ReqMate {
     }
 }
 
-export { Timed, Polling, ReqMateCache, MapCache };
+export { Timed, Polling, ReqMateCache, MapCache, RetryFactory };
 
 export default new ReqMate();

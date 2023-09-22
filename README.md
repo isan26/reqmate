@@ -582,7 +582,7 @@ Retry mechanisms can be created using the `RetryFactory` or by directly instanti
 Here's how you can create a Polling-type Retry object using the Factory:
 
 ```typescript
-import RetryFactory from 'reqmate/retry/RetryFactory';
+import {RetryFactory} from 'reqmate';
 
 const retry = RetryFactory.build({
         type: 'polling',

@@ -1,6 +1,6 @@
 {
   "name": "reqmate",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simple and extensible HTTP client library built on top of fetch with caching and retry. Works on browser, Node.js, Bun, and more.",
   "keywords": [
     "http",
