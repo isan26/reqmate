@@ -1,12 +1,10 @@
 import './App.css'
 
-import reqmate from '../../../src';
-
-import Polling from '../../../src/retry/Polling';
-import Timed from '../../../src/retry/Timed';
+import reqmate, { Timed, Polling } from 'reqmate';
+// import reqmate, { Polling } from 'reqmate';
 
 import { useState } from 'react';
-import TimedComponent from './Timed';
+// import TimedComponent from './Timed';
 
 import LocalStorageCache from './LocalCache';
 
@@ -168,7 +166,7 @@ function App() {
       <button onClick={doDelete}>DELETE</button>
 
       <hr />
-      <TimedComponent />
+      {/* <TimedComponent /> */}
 
       <hr />
       <RetryTest />

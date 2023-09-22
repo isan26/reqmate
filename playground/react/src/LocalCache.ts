@@ -1,4 +1,4 @@
-import ReqMateCache from '../../../src/cache/ReqMateCache';
+import { ReqMateCache } from 'reqmate';
 
 export default class LocalStorageCache implements ReqMateCache {
 

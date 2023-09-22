@@ -1,6 +1,6 @@
 # reqmate
 
-Uncomplicated and extensible HTTP client lib on top of fetch with caching and retry mechanisms. It works on browser, nodejs, Bun, etc..
+An uncomplicated and extensible HTTP client library built on top of fetch, equipped with caching and retry mechanisms. Suitable for the browser, Node.js, Bun, and more.
 
 ## Table of Contents
 
@@ -29,7 +29,7 @@ Uncomplicated and extensible HTTP client lib on top of fetch with caching and re
 
 ## Basic Usage
 
-ReqMate is a wrapper on top of fetch in order to make it simpler to use and also add some common use capabilities, it uses the [builder pattern](https://refactoring.guru/design-patterns/builder) to create and send a request, the simplest way is to call reqmate, specify the HTTP verb and call send, check the following code snippet
+ReqMate wraps fetch to simplify its use and add commonly required capabilities. It employs the [builder pattern](https://refactoring.guru/design-patterns/builder) to create and send requests. The basic way to use it is to call reqmate, specify the HTTP verb, and then call `send`. Here's a code snippet to demonstrate:
 
 ```javascript
 // Import the lib
@@ -72,9 +72,7 @@ const deleteRequest = await reqmate.delete("/product/666").send();
 
 ## Request Configuration
 
-The fields `mode`, `credentials`, `cache` and `redirect` can be especified by setting the request's config.
-
-The following code snippet
+Fields such as `mode`, `credentials`, `cache`, and `redirect` can be specified by setting the request's config. Here's a sample:
 
 ```javascript
 const getRequest = await reqmate
@@ -91,14 +89,14 @@ const getRequest = await reqmate
 
 ## Response
 
-The response object contains:
+The response object comprises:
 
-- **ok**: Boolean value, true if request is a success (is the standard fetch ok field)
-- **status** : Number value, status code of the request
-- **headers** : Object with the headers.
-- **cached** : Boolean value, will be true if the request was cached
-- **cacheKey** (optional) : String value with the cache key.
-- **data** : Result from parsing the response from the server
+- **ok**: Boolean, true if the request was successful (equivalent to the standard fetch `ok` field).
+- **status**: Numeric status code of the request.
+- **headers**: Object containing response headers.
+- **cached**: Boolean, true if the response was retrieved from cache.
+- **cacheKey**: (Optional) String denoting the cache key.
+- **data**: Contains the parsed response data from the server.
 
 ```JSON
 {
@@ -122,11 +120,7 @@ The response object contains:
 
 ## Parser
 
-The parser is a promise that will process the "raw" request accordingly.
-
-ReqMate comes with default parsers that are gonna get called depending on the Content-Type header value. So usually we won't have the need to override it, but if needed, the parser can be replaced by setting it using the setParser step of the builder.
-
-The following code snippet shows how to use a custom parser, note that the parser can be a promise, in fact the default parsers are promises.
+The parser is a promise that processes the raw request response. By default, ReqMate utilizes parsers based on the `Content-Type` header value. Most use cases won't require an override. However, if needed, a custom parser can replace the default by using the `setParser` step of the builder. Here's an example using a custom parser:
 
 ```typescript
     const isPostSuccess : Boolean = await reqmate
@@ -182,7 +176,7 @@ function App(){
 
 ## Caching
 
-ReqMate can cache your http calls, by just calling the setCaching step of the builder, by default if we use setCaching without any param, the request will be cached forever, but we can set a ttl (in milliseconds) and the cache will expire after that period.
+With ReqMate, you can cache your HTTP calls. Simply invoke the `setCaching` step of the builder. If `setCaching` is called without parameters, the request is cached indefinitely. However, a time-to-live (TTL) can be specified in milliseconds to determine cache expiration.
 
 ```javascript
 
@@ -208,19 +202,15 @@ ReqMate can cache your http calls, by just calling the setCaching step of the bu
 
 ## Retry
 
-ReqMate have two types of retry strategies (Polling and Timed) and the strategies can be configured to achieve different objectives.
+ReqMate offers two retry strategies: Polling and Timed. You can customize these strategies for different requirements.
 
 ### onResponse and onError
 
-For reading each response, we can pass a callback to the onResponse property, onResponse receives 2 parameters, the first one is the parsed response itself and the second one is the done() function, if we call it, it will stop the process inmediatly and reqmate will resolve with the last value from the polling. The same with the onError property, it will trigger when the request fails.
-
-The bellow example will call `done()` on the onResponse given a condition or when it errors out. Calling `done()` is optional, is a mechanism to stop the process at any time. If we don't call `done()` the process will stop when ever we react the `maxRetries` or when we reach the `timeout` time.
+To handle each response, you can provide a callback to the `onResponse` property. This callback receives two arguments: the parsed response and a `done()` function. Invoking `done()` will halt the retry process and resolve the promise with the last received value. Similarly, `onError` can be used to handle request failures.
 
 ### Polling
 
-Polling will start a request when the previous one succeeds or fails untill the maxRetires is reached or the `done()` method is called.
-
-The simples way to do a retry is by using the Polling mechanism as shown in the following example:
+Polling initiates a new request after the completion (whether successful or failed) of the previous one. It continues until the `maxRetries` count is reached or the `done()` function is called. Below is an example:
 
 ```javascript
    const response = await reqmate
@@ -244,16 +234,13 @@ The simples way to do a retry is by using the Polling mechanism as shown in the 
 
 ```
 
-This is a way of doing it, by passing an object with the configuration needed for polling.
-Polling has the property maxRetries that specify how many requests will be made.
-
 ### Timed
 
-Timed will execute a new request given an interval, this makes the strategy more powerful because we can implement different subtypes of strategies like:
+The Timed strategy triggers a new request based on specified intervals, providing flexibility with various sub-strategies:
 
 - Exponential Backoff : The time between requests will increase exponentially.
 - Linear Backoff : The time  between requests will increase by a fixed amount.
-- Static Backoff (default) : The time between requests will be the same.
+- Static Backoff (default) : The default strategy, ensures all retries happen at consistent intervals.
 - Random Backoff : The time between requests will be a random number between 2 values with each call.
 
 #### Exponential
@@ -375,7 +362,8 @@ The `doRandomBackoff` receives the parameters
 
 #### Custom
 
-The reqmate library comes with a few strategies but you can implement your own. The `intervalCallback` is just a high order function that returns a function that return the interval.
+You're not limited to the built-in strategies. ReqMate allows you to define custom strategies using the intervalCallback.
+The `intervalCallback` is just a high order function that returns a function that return the interval.
 
 Example of a custom made retry mechanism, this retry will alternate between 1 and 3 seconds for the intervals.
 
@@ -417,7 +405,7 @@ Example of a custom made retry mechanism, this retry will alternate between 1 an
 
 ## Implementing custom cache
 
-ReqMate comes with a default in memory cache but this can be overriten to use a custom implementation. A cache must implement the ReqMateCache interface:
+By default, ReqMate provides an in-memory cache. However, you can replace this with a custom implementation. Your custom cache should adhere to the ReqMateCache interface:
 
 ```typescript
 export default interface ReqMateCache {
@@ -437,7 +425,7 @@ export default interface ReqMateCache {
 
 ```
 
-As an example, check the implementation below, it will use the localStorage as a cache (this class is just an example)
+To demonstrate, here's an example that employs localStorage for caching (this class is just an example):
 
 ```typescript
 
@@ -549,7 +537,7 @@ export default class LocalStorageCache implements ReqMateCache {
 
 ```
 
-To use it is just a matter of setting it as cache on reqmate
+To set your custom cache in ReqMate:
 
 ```typescript
 
@@ -573,7 +561,7 @@ reqmate.cache = new LocalStorageCache("app_");
 
 ```
 
-and the same way you can set the cache for reqmate, you also can get the cache from it like:
+Similarly, you can retrieve the cache from ReqMate:
 
 ```typescript
 const cache = reqmate.cache;
@@ -589,9 +577,9 @@ console.log(await reqmate.cache.size())
 
 ### Factory
 
-We can use the retry mechanisms by either creating the correct retry using the `RetryFactory` or by instantiating the especific retry classes ourselves. This retry mechanism can be reused with another promises as we will see.
+Retry mechanisms can be created using the `RetryFactory` or by directly instantiating specific retry classes. These mechanisms can also be repurposed for other promises.
 
-Creating a Retry object of type polling with the Factory. Objects of type timed can also be created.
+Here's how you can create a Polling-type Retry object using the Factory:
 
 ```typescript
 import RetryFactory from 'reqmate/retry/RetryFactory';
@@ -607,9 +595,7 @@ const retry = RetryFactory.build({
 
 ### Retry Classes
 
-We can instantiate the `Polling` and `Timed` directly from their own classes and inject then using the `setRetry`.
-
-Check the examples bellow, it uses again the builder pattern to setup the values on a chain before injecting it to reqmate's request. You can do it all in one chain like in the Polling example or instantiate the class first and add the steps to the const like in timed.
+Both `Polling` and `Timed` classes can be instantiated directly. You can then inject them using the `setRetry`. Here are examples for both:
 
 #### Polling Example
 

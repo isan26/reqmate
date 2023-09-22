@@ -1,4 +1,4 @@
-import ReqMateCache from "./cache/ReqMateCache";
+import { ReqMateCache } from "./Cache";
 import Retry from "./retry/base/Retry";
 import RetryFactory, { RetryTypes } from "./retry/RetryFactory";
 

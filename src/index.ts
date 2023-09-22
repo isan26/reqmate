@@ -1,6 +1,5 @@
 import Req from "./Req";
-import mapCache from "./cache/MapCache";
-import ReqMateCache from "./cache/ReqMateCache";
+import mapCache, { MapCache, ReqMateCache } from "./Cache";
 import Timed from "./retry/Timed";
 import Polling from "./retry/Polling";
 
@@ -38,6 +37,6 @@ class ReqMate {
     }
 }
 
-export { Timed, Polling };
+export { Timed, Polling, ReqMateCache, MapCache };
 
 export default new ReqMate();

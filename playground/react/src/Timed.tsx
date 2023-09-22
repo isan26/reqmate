@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import reqmate, { Timed } from '../../../src';
+import reqmate, { Timed } from 'reqmate';
 
 const TimedComponent = () => {
     const [state, setState] = useState<undefined | Object>()

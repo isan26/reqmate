@@ -1,5 +1,5 @@
 const fs = require('fs').promises;
-const { Polling, Timed } = require('../../../dist');
+const { Polling, Timed } = require('reqmate');
 
 async function readFile(filePath) {
     try {
@@ -35,6 +35,7 @@ async function readTimed() {
 }
 
 async function writeTimed() {
+    console.log("RUNNING")
     let counter = 0;
     const timed = new Timed();
     timed.setInterval(1000)

@@ -1,9 +1,4 @@
-import React from 'react'
-
-import reqmate from '../../../src';
-import Polling from '../../../src/retry/Polling';
-import Timed from '../../../src/retry/Timed';
-
+import reqmate, { Timed, Polling } from 'reqmate';
 
 
 const RetryTest = () => {

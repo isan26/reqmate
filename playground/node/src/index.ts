@@ -1,6 +1,6 @@
-import reqmate from '../../../src';
-import Polling from '../../../src/retry/Polling';
-import Timed from '../../../src/retry/Timed';
+import reqmate, { Timed, Polling } from 'reqmate';
+// import Polling from '../../../src/retry/Polling';
+// import Timed from '../../../src/retry/Timed';
 
 const URL = 'http://localhost:3000?name=hello'
 
