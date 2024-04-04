@@ -184,9 +184,10 @@ export default class Req {
 
 
     private parseResponse(res: Response): Promise<unknown> | unknown {
-        const parser = this.getRequestParser(res) || this._parsers['application/json'];
-
-        return parser(res);
+        if (this.getRequestParser(res)) {
+            return this.getRequestParser(res);
+        }
+        return this._parsers['application/json']
     }
 
     private getRequestParser(res: Response) {
