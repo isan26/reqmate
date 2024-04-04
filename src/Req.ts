@@ -184,10 +184,9 @@ export default class Req {
 
 
     private parseResponse(res: Response): Promise<unknown> | unknown {
-        if (this.getRequestParser(res)) {
-            return this.getRequestParser(res);
-        }
-        return this._parsers['application/json']
+        const parser = this.getRequestParser(res);
+
+        return parser && parser(res);
     }
 
     private getRequestParser(res: Response) {
@@ -200,7 +199,8 @@ export default class Req {
             }
         }
 
-        throw new Error(`No parser found for ${contentType}`);
+        console.warn(`No parser found for content type: ${contentType}`);
+        return this._parsers['application/json'];
     }
 
     private getHeaders(res: Response): Record<string, string> {

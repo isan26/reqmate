@@ -1,6 +1,6 @@
 {
   "name": "reqmate",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Simple and extensible HTTP client library built on top of fetch with caching and retry. Works on browser, Node.js, Bun, and more.",
   "keywords": [
     "http",
@@ -16,6 +16,9 @@
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "files": [
+    "/dist"
+  ],
   "scripts": {
     "test": "rm -rf ./lib &&  jest",
     "build": "tsup src/index.ts --format cjs,esm --dts",
