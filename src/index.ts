@@ -38,6 +38,6 @@ class ReqMate {
     }
 }
 
-export { Timed, Polling, ReqMateCache, MapCache, RetryFactory };
+export { Timed, Polling, ReqMateCache, MapCache, RetryFactory, Req };
 
 export default new ReqMate();
