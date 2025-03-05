@@ -108,6 +108,11 @@ The response object comprises:
       "expires":"-1",
       "pragma":"no-cache"
    },
+   "cookies" : [
+     {
+        "token" : "1235" 
+     }
+   ],
    "cached":false,
    "data":{
       "userId": 1,

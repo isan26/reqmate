@@ -6,7 +6,8 @@ type ReqMateResponse<T> = {
     data: T,
     ok: Boolean,
     status: number,
-    headers: Record<string, string>,
+    headers: MapObject,
+    cookies: MapObject[],
     cached?: boolean,
     cacheKey?: string,
 }
@@ -18,9 +19,11 @@ type ReqMateReqConfig = {
     redirect: "follow" | "error" | "manual" | undefined,
 }
 
+type MapObject = Record<string, string>
+
 
 export default class Req {
-    private _headers: Record<string, string> = {};
+    private _headers: MapObject = {};
 
     private reqConfig: ReqMateReqConfig = {
         mode: undefined,
@@ -40,33 +43,33 @@ export default class Req {
 
     private _parser: ((req: Response) => Promise<unknown>) | ((req: Response) => unknown) | undefined = undefined;
     private _parsers = {
-        'application/json': (res: Response) => res.json(),
-        'text/plain': (res: Response) => res.text(),
-        'text/html': (res: Response) => res.text(),
-        'text/css': (res: Response) => res.text(),
-        'text/javascript': (res: Response) => res.text(),
-        'text/xml': (res: Response) => res.text(),
-        'application/xml': (res: Response) => res.text(),
-        'application/rss+xml': (res: Response) => res.text(),
-        'application/atom+xml': (res: Response) => res.text(),
-        'application/xhtml+xml': (res: Response) => res.text(),
-        'image/jpeg': (res: Response) => res.blob(),
-        'image/png': (res: Response) => res.blob(),
-        'image/gif': (res: Response) => res.blob(),
-        'image/bmp': (res: Response) => res.blob(),
-        'image/webp': (res: Response) => res.blob(),
-        'image/svg+xml': (res: Response) => res.text(),
-        'audio/mpeg': (res: Response) => res.blob(),
-        'audio/wav': (res: Response) => res.blob(),
-        'audio/ogg': (res: Response) => res.blob(),
-        'audio/midi': (res: Response) => res.blob(),
-        'video/mp4': (res: Response) => res.blob(),
-        'video/webm': (res: Response) => res.blob(),
-        'video/ogg': (res: Response) => res.blob(),
-        'application/zip': (res: Response) => res.blob(),
-        'application/pdf': (res: Response) => res.blob(),
-        'multipart/form-data': (res: Response) => res.formData(),
-        'application/octet-stream': (res: Response) => res.arrayBuffer(),
+        'application/json': (req: Response) => req.json(),
+        'text/plain': (req: Response) => req.text(),
+        'text/html': (req: Response) => req.text(),
+        'text/css': (req: Response) => req.text(),
+        'text/javascript': (req: Response) => req.text(),
+        'text/xml': (req: Response) => req.text(),
+        'application/xml': (req: Response) => req.text(),
+        'application/rss+xml': (req: Response) => req.text(),
+        'application/atom+xml': (req: Response) => req.text(),
+        'application/xhtml+xml': (req: Response) => req.text(),
+        'image/jpeg': (req: Response) => req.blob(),
+        'image/png': (req: Response) => req.blob(),
+        'image/gif': (req: Response) => req.blob(),
+        'image/bmp': (req: Response) => req.blob(),
+        'image/webp': (req: Response) => req.blob(),
+        'image/svg+xml': (req: Response) => req.text(),
+        'audio/mpeg': (req: Response) => req.blob(),
+        'audio/wav': (req: Response) => req.blob(),
+        'audio/ogg': (req: Response) => req.blob(),
+        'audio/midi': (req: Response) => req.blob(),
+        'video/mp4': (req: Response) => req.blob(),
+        'video/webm': (req: Response) => req.blob(),
+        'video/ogg': (req: Response) => req.blob(),
+        'application/zip': (req: Response) => req.blob(),
+        'application/pdf': (req: Response) => req.blob(),
+        'multipart/form-data': (req: Response) => req.formData(),
+        'application/octet-stream': (req: Response) => req.arrayBuffer(),
     } as Record<string, (req: Response) => Promise<unknown>>;
 
     constructor(
@@ -119,13 +122,7 @@ export default class Req {
         const callback = async () => {
             const res = await this.sendRequest();
             const data = await this.parseResponse(res) as T;
-            return {
-                ok: res.ok,
-                status: res.status,
-                headers: this.getHeaders(res),
-                cached: false,
-                data: data,
-            }
+            return this.generateResult(res, data);
         }
         return await this._retry!.setCallback(callback.bind(this)).execute() as ReqMateResponse<T>;
     }
@@ -134,13 +131,42 @@ export default class Req {
         const res = await this.sendRequest();
         const data = await this.parseResponse(res) as T;
 
+        return this.generateResult(res, data);
+    }
+
+    private generateResult<T>(res: Response, data: T): ReqMateResponse<T> {
         return {
             ok: res.ok,
             status: res.status,
             headers: this.getHeaders(res),
+            cookies: this.getCookieHeaders(res),
             cached: false,
             data: data,
         }
+    }
+
+    private getCookieHeaders(res: Response): MapObject[] {
+        const cookies: MapObject[] = [];
+        res.headers.forEach((value, key) => {
+            if (key.toLowerCase() === 'set-cookie') {
+                const cookie = this.parseCookie(value);
+                cookies.push(cookie);
+            }
+        });
+
+        return cookies;
+    }
+
+    private parseCookie(cookie: string): MapObject {
+        const cookies: MapObject = {};
+
+        const cookieParts = cookie.split(';');
+        cookieParts.forEach(cookiePart => {
+            const [key, value] = cookiePart.split('=');
+            if (key && value) cookies[key.trim()] = value;
+        });
+
+        return cookies;
     }
 
     private sendRequest(): Promise<Response> {
@@ -184,9 +210,10 @@ export default class Req {
 
 
     private parseResponse(res: Response): Promise<unknown> | unknown {
-        const parser = this.getRequestParser(res);
+        const parser = this.getRequestParser(res) || this._parsers['application/json'];
+        if (!parser) throw new Error('No parser found');
 
-        return parser && parser(res);
+        return parser(res);
     }
 
     private getRequestParser(res: Response) {
@@ -199,12 +226,11 @@ export default class Req {
             }
         }
 
-        console.warn(`No parser found for content type: ${contentType}`);
-        return this._parsers['application/json'];
+        throw new Error(`No parser found for ${contentType}`);
     }
 
-    private getHeaders(res: Response): Record<string, string> {
-        const headers: Record<string, string> = {};
+    private getHeaders(res: Response): MapObject {
+        const headers: MapObject = {};
         res.headers.forEach((value, key) => {
             headers[key] = value;
         });
@@ -240,7 +266,7 @@ export default class Req {
         return this;
     }
 
-    public setHeaders(headers: Record<string, string>): Req {
+    public setHeaders(headers: MapObject): Req {
         this._headers = headers;
         return this;
     }
