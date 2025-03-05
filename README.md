@@ -94,6 +94,7 @@ The response object comprises:
 - **ok**: Boolean, true if the request was successful (equivalent to the standard fetch `ok` field).
 - **status**: Numeric status code of the request.
 - **headers**: Object containing response headers.
+- **cookies**: Array of objects containing cookies setted by the server using the `set-cookie` header
 - **cached**: Boolean, true if the response was retrieved from cache.
 - **cacheKey**: (Optional) String denoting the cache key.
 - **data**: Contains the parsed response data from the server.
