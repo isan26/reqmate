@@ -38,6 +38,17 @@ class ReqMate {
     }
 }
 
-export { Timed, Polling, ReqMateCache, MapCache, RetryFactory, Req };
+const reqMate = new ReqMate();
 
-export default new ReqMate();
+// For CommonJS build – inject default export
+if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
+    module.exports = Object.assign(reqMate, {
+        Timed,
+        Polling,
+        RetryFactory,
+        MapCache,
+    });
+}
+
+export { Req, mapCache, MapCache, ReqMateCache, Timed, Polling, RetryFactory };
+export default reqMate;
