@@ -1,3 +1,5 @@
+import { ReqMateResponse } from "../../Req";
+
 export default class Retry {
     public _maxRetries = -1;
     public _retries: number = 0;
@@ -13,13 +15,13 @@ export default class Retry {
         return this;
     }
 
-    public onResponse(callback: (response: unknown, done: () => void) => void) {
-        this._onResponse = callback;
+    public onResponse<T = unknown>(callback: (response: ReqMateResponse<T>, done: () => void) => void) {
+        this._onResponse = callback as any;
         return this;
     }
 
-    public onError(callback: (error: unknown, done: () => void) => void) {
-        this._onFailure = callback;
+    public onError<T = unknown>(callback: (error: ReqMateResponse<T>, done: () => void) => void) {
+        this._onFailure = callback as any;
         return this;
     }
 
@@ -39,9 +41,7 @@ export default class Retry {
         return async () => { }
     }
 
-
     public done(): void {
         this._done = true;
     }
-
 }

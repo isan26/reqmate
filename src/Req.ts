@@ -2,7 +2,7 @@ import { ReqMateCache } from "./Cache";
 import Retry from "./retry/base/Retry";
 import RetryFactory, { RetryTypes } from "./retry/RetryFactory";
 
-type ReqMateResponse<T> = {
+export type ReqMateResponse<T> = {
     data: T,
     ok: Boolean,
     status: number,
@@ -238,8 +238,8 @@ export default class Req {
         return headers;
     }
 
-    public setRetry(retry: RetryTypes): Req {
-        this._retry = RetryFactory.build(retry);
+    public setRetry<OnResponse = unknown>(retry: RetryTypes<OnResponse>): Req {
+        this._retry = RetryFactory.build<OnResponse>(retry);
         return this;
     }
 

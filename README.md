@@ -218,10 +218,18 @@ To handle each response, you can provide a callback to the `onResponse` property
 
 Polling initiates a new request after the completion (whether successful or failed) of the previous one. It continues until the `maxRetries` count is reached or the `done()` function is called. Below is an example:
 
-```javascript
+```typescript
+    // Optionally we can specify the expected response type
+    type TodoResponse  = {
+        userId: number;
+        id: number;
+        title: string;
+        completed: boolean;
+    }
+
    const response = await reqmate
       .get('https://jsonplaceholder.typicode.com/todos/3')
-      .setRetry({
+      .setRetry<TodoResponse>({
         type: 'polling',
         maxRetries: 3,
         onResponse: (r, done) => { 

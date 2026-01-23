@@ -2,7 +2,7 @@ import Retry from "./base/Retry";
 
 export default class Polling extends Retry {
 
-    public async execute(): Promise<unknown> {
+    public async execute(){
         let result: unknown;
 
         while ((this._maxRetries == -1 || this._retries < this._maxRetries)) {
